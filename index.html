@@ -261,7 +261,7 @@ function sheet(t,body,ok,label='Save'){
  el.innerHTML=`<form class="sh"><h3>${t}</h3>${body}<div class="row"><button type="button" class="b g" data-c>Cancel</button><button class="b p">${label}</button></div></form>`;
  el.onclick=e=>{if(e.target===el||e.target.dataset.c!==undefined)el.remove()};
  el.firstChild.onsubmit=e=>{e.preventDefault();if(ok(id=>el.querySelector('#'+id).value.trim())!==false)el.remove()};
- document.body.appendChild(el);const i=el.querySelector('input:not([type="file"])');if(i){i.focus();if(i.select)i.select()}return el}
+ document.body.appendChild(el);return el}
 const ask=(m,fn,l='Yes')=>sheet('Please confirm',`<p>${m}</p>`,()=>{fn()},l);
 function log(p,c,y,o){S.log.unshift({t:Date.now(),n:p.name,c,a:p.stock,y,o:o||''});S.log=S.log.slice(0,300)}
 function fits(){for(const p of S.products){const n=(cart[p.id]||0)*p.per;if(n>p.stock){toast(`Not enough ${p.name}: only ${p.stock} pcs left`);return false}}return true}
