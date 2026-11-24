@@ -223,7 +223,7 @@ const st=p=>p.stock<=0?'out':p.stock<=p.min?'low':'ok';
 const low=()=>S.products.filter(p=>p.stock<=p.min).sort((a,b)=>a.stock-b.stock);
 const total=()=>S.products.reduce((t,p)=>t+(cart[p.id]||0)*p.price,0);
 const bal=u=>Math.round((u.a-u.p)*100)/100;
-const f=(l,id,v='',t='text',x='',usePlaceholder=false)=>`<label>${l}<span class="input-wrap"><input id="${id}" type="${t==='number'?'text':t}" ${usePlaceholder?`placeholder="${esc(v)}"`:`value="${esc(v)}"`} ${x}><button type="button" class="input-clear" data-clear-input="${id}" aria-label="Clear ${esc(l)}">×</button></span></label>`;
+const f=(l,id,v='',t='text',x='',usePlaceholder=false)=>`<label>${l}<span class="input-wrap"><input id="${id}" type="${t==='number'?'text':t}" ${usePlaceholder?`placeholder="${esc(v)}"`:`value="${esc(v)}"`} ${x}></span></label>`;
 const imageField=(label,inputId,previewId,existing,kind='product')=>`<div class="image-field"><label for="${inputId}">${label}</label><div class="image-preview ${kind==='logo'?'logo-preview':''}" id="${previewId}">${existing?`<img src="${esc(existing)}" alt="Current image">`:'<span>No image selected</span>'}</div><div class="image-actions"><button type="button" class="b g s" data-remove-image="${inputId}">Remove image</button></div><input id="${inputId}" type="file" accept="image/*"><small class="image-help">Choose a photo from your device. It will be resized to save space.</small></div>`;
 async function compressImage(file,maxSide=520){
  if(!file||!file.type||!file.type.startsWith('image/'))throw new Error('Please choose an image file.');
