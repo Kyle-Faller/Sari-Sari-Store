@@ -135,25 +135,28 @@ nav button{text-align:center}
 .em p{margin:5px 0;text-align:center!important}
 #list>.em{grid-column:1/-1}
 
-/* Mobile hamburger menu (desktop keeps the regular bottom navigation). */
-.menu-toggle{display:none;all:unset;cursor:pointer;flex:none;width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.12);color:#fff;place-items:center;font:800 26px/1 system-ui,sans-serif;text-align:center}
+/* Mobile hamburger menu: switch to a dropdown on phones and small tablets. */
+.menu-toggle{all:unset;display:none;cursor:pointer;flex:none;width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.12);color:#fff;place-items:center;font:800 26px/1 system-ui,sans-serif;text-align:center}
 .menu-toggle:focus-visible{outline:3px solid var(--amb);outline-offset:2px}
 .mobile-menu{display:none}
-@media(max-width:699px){
+@media(max-width:767px){
   header{gap:10px}
   header button.store-title{flex:1;min-width:0}
-  .menu-toggle{display:grid}
-  nav{display:none}
+  .menu-toggle{display:grid!important}
+  nav{display:none!important}
   main{padding-bottom:105px}
   #cb{bottom:calc(10px + env(safe-area-inset-bottom,0px))}
-  .mobile-menu{position:fixed;top:calc(74px + env(safe-area-inset-top,0px));right:12px;z-index:30;width:min(270px,calc(100vw - 24px));padding:8px;background:var(--card);border:1px solid var(--ln);border-radius:18px;box-shadow:0 12px 32px rgba(0,0,0,.22);flex-direction:column;gap:4px}
-  .mobile-menu.open{display:flex}
-  .mobile-menu button{width:100%;border:0;border-radius:12px;background:transparent;color:var(--tx);padding:13px 14px;text-align:left;font:800 16px system-ui,sans-serif;display:flex;align-items:center;gap:12px}
+  .mobile-menu{position:fixed;top:calc(76px + env(safe-area-inset-top,0px));right:12px;z-index:30;width:min(280px,calc(100vw - 24px));padding:8px;background:var(--card);border:1px solid var(--ln);border-radius:18px;box-shadow:0 12px 32px rgba(0,0,0,.22);flex-direction:column;gap:4px}
+  .mobile-menu.open{display:flex!important}
+  .mobile-menu button{width:100%;min-height:48px;border:0;border-radius:12px;background:transparent;color:var(--tx);padding:13px 14px;text-align:left;font:800 16px system-ui,sans-serif;display:flex;align-items:center;gap:12px}
   .mobile-menu button span{font-size:21px;width:28px;text-align:center}
   .mobile-menu button.on{background:var(--bg);color:var(--navy)}
   .mobile-menu button .menu-count{margin-left:auto;background:var(--dg);color:#fff;border-radius:99px;padding:1px 7px;font:800 11px system-ui,sans-serif}
 }
-@media(min-width:700px){.menu-toggle,.mobile-menu{display:none!important}}
+@media(min-width:768px){
+  .menu-toggle,.mobile-menu{display:none!important}
+  nav{display:flex!important}
+}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
 

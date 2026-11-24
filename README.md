@@ -1,4 +1,3 @@
-
 # Sari-Sari Store — Offline-Ready Website / PWA
 
 This project is a small sari-sari store inventory and sales tracker that can be published as a website and installed on a phone as a Progressive Web App (PWA).
@@ -7,13 +6,13 @@ This project is a small sari-sari store inventory and sales tracker that can be 
 
 ```text
 sari-sari-pwa/
-├── index.html
-├── manifest.json
-├── sw.js
-├── README.md
+├── index.html          # Store application (HTML, CSS, and JavaScript)
+├── manifest.json       # App name, display settings, and icons
+├── sw.js               # Service worker for offline caching
+├── README.md           # Project instructions
 └── icons/
-    ├── icon-192.png
-    └── icon-512.png
+    ├── icon-192.png    # App icon
+    └── icon-512.png    # App icon
 ```
 
 ## Run locally
@@ -74,3 +73,11 @@ sari-sari-pwa/
 
 - **Android:** Open the published HTTPS site in Chrome, open the browser menu, then choose **Install app** (or **Add to Home Screen**, depending on the browser).
 - **iPhone:** Open the published HTTPS site in Safari, tap **Share**, choose **Add to Home Screen**, and enable **Open as Web App** when that option appears.
+
+
+
+## Mobile layout
+
+- On phones and small screens (up to 767px wide), the bottom navigation is replaced by a hamburger menu in the header.
+- Tap the hamburger button to open Sell, Stock, and Utang. Tap an item to switch pages; tap outside the menu to close it.
+- On wider screens, the regular navigation is shown.
