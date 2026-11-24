@@ -223,7 +223,7 @@ const st=p=>p.stock<=0?'out':p.stock<=p.min?'low':'ok';
 const low=()=>S.products.filter(p=>p.stock<=p.min).sort((a,b)=>a.stock-b.stock);
 const total=()=>S.products.reduce((t,p)=>t+(cart[p.id]||0)*p.price,0);
 const bal=u=>Math.round((u.a-u.p)*100)/100;
-const f=(l,id,v='',t='text',x='')=>`<label>${l}<span class="input-wrap"><input id="${id}" type="${t==='number'?'text':t}" value="${esc(v)}" ${x}><button type="button" class="input-clear" data-clear-input="${id}" aria-label="Clear ${esc(l)}">×</button></span></label>`;
+const f=(l,id,v='',t='text',x='',usePlaceholder=false)=>`<label>${l}<span class="input-wrap"><input id="${id}" type="${t==='number'?'text':t}" ${usePlaceholder?`placeholder="${esc(v)}"`:`value="${esc(v)}"`} ${x}><button type="button" class="input-clear" data-clear-input="${id}" aria-label="Clear ${esc(l)}">×</button></span></label>`;
 const imageField=(label,inputId,previewId,existing,kind='product')=>`<div class="image-field"><label for="${inputId}">${label}</label><div class="image-preview ${kind==='logo'?'logo-preview':''}" id="${previewId}">${existing?`<img src="${esc(existing)}" alt="Current image">`:'<span>No image selected</span>'}</div><div class="image-actions"><button type="button" class="b g s" data-remove-image="${inputId}">Remove image</button></div><input id="${inputId}" type="file" accept="image/*"><small class="image-help">Choose a photo from your device. It will be resized to save space.</small></div>`;
 async function compressImage(file,maxSide=520){
  if(!file||!file.type||!file.type.startsWith('image/'))throw new Error('Please choose an image file.');
@@ -292,9 +292,9 @@ function render(){$('#app').innerHTML=views[tab]();$('#sn').textContent=S.name;$
  bar();
  const i=$('#q');if(i)i.oninput=()=>{q=i.value;$('#list').innerHTML=list()}}
 function pSheet(p){const n=!p,pp=p||{};
- const el=sheet(n?'Add product':'Edit product',f('Product name','n',pp.name)+imageField('Product image','productImage','productImagePreview',pp.image||'')+f('Price (₱)','pr',pp.price??'','number','step="any" inputmode="decimal"')+f('Pieces for that price (e.g. 4 for ₱5 per 4 pcs)','pe',pp.per||1,'number','inputmode="numeric"')+f('Stock on hand (pcs)','s',pp.stock??0,'number','inputmode="numeric"')+f('Alert me when stock is at or below','m',pp.min??5,'number','inputmode="numeric"')+(n?'':'<button type="button" class="b d" data-del>Delete product</button>'),v=>{
+ const el=sheet(n?'Add product':'Edit product',f('Product name','n',pp.name,'text','',!n)+imageField('Product image','productImage','productImagePreview',pp.image||'')+f('Price (₱)','pr',pp.price??'','number','step="any" inputmode="decimal"')+f('Pieces for that price (e.g. 4 for ₱5 per 4 pcs)','pe',pp.per||1,'number','inputmode="numeric"')+f('Stock on hand (pcs)','s',pp.stock??0,'number','inputmode="numeric"')+f('Alert me when stock is at or below','m',pp.min??5,'number','inputmode="numeric"')+(n?'':'<button type="button" class="b d" data-del>Delete product</button>'),v=>{
   if(imagePicker.loading){toast('Please wait for the image to finish processing.');return false}
-  const name=v('n'),price=+v('pr'),per=Math.floor(+v('pe')),s=Math.floor(+v('s')),m=Math.floor(+v('m'));
+  const name=v('n')||(p?p.name:''),price=+v('pr'),per=Math.floor(+v('pe')),s=Math.floor(+v('s')),m=Math.floor(+v('m'));
   if(!name||!(price>0)||!(per>=1)||!(s>=0)||!(m>=0)){toast('Enter a name, a price above zero, and whole numbers');return false}
   let o=p;if(n){o={id:uid(),sold:0};S.products.push(o)}const old=o.stock;
   Object.assign(o,{name,price,per,stock:s,min:m,image:imagePicker.value});
@@ -310,9 +310,9 @@ function uSheet(amt,note,fromCart){const names=[...new Set(S.utang.map(x=>x.c))]
 const act={
  menu(){toggleMobileMenu()},
  tab(id){closeMobileMenu();tab=id;render();scrollTo(0,0)},
- design(){const el=sheet('Change Store Design',f('Store name','n',S.name)+imageField('Store logo','storeLogo','storeLogoPreview',S.logo||'','logo'),v=>{
+ design(){const el=sheet('Change Store Design',f('Store name','n',S.name,'text','',true)+imageField('Store logo','storeLogo','storeLogoPreview',S.logo||'','logo'),v=>{
   if(logoPicker.loading){toast('Please wait for the image to finish processing.');return false}
-  if(!v('n'))return false;S.name=v('n');S.logo=logoPicker.value;save();render()});
+  S.name=v('n')||S.name;S.logo=logoPicker.value;save();render()});
   const logoPicker=setupImagePicker(el,'storeLogo','storeLogoPreview',S.logo||'',440)},
  p(id,p){const c=(cart[id]||0)+1;if(c*p.per>p.stock){toast(p.stock<=0?`${p.name} is out of stock. Restock it first.`:`Only ${p.stock} pcs of ${p.name} left`);return}cart[id]=c;render()},
  m(id){if(cart[id]>0)cart[id]--;render()},
