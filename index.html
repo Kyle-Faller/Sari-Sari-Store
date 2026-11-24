@@ -178,7 +178,7 @@ nav button{text-align:center}
 </style></head><body>
 <header>
   <div class="lg" id="lg"></div>
-  <button class="store-title" data-a="name"><b id="sn"></b><small>Tap to edit store name &amp; logo</small></button>
+  <button class="store-title" data-a="name"><b id="sn"></b><small>Change Store Design · Edit name &amp; logo</small></button>
   <button class="menu-toggle" id="menuToggle" type="button" data-a="menu" aria-label="Open navigation menu" aria-expanded="false">☰</button>
 </header>
 <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
@@ -218,7 +218,7 @@ const st=p=>p.stock<=0?'out':p.stock<=p.min?'low':'ok';
 const low=()=>S.products.filter(p=>p.stock<=p.min).sort((a,b)=>a.stock-b.stock);
 const total=()=>S.products.reduce((t,p)=>t+(cart[p.id]||0)*p.price,0);
 const bal=u=>Math.round((u.a-u.p)*100)/100;
-const f=(l,id,v='',t='text',x='')=>`<label>${l}<input id="${id}" type="${t}" value="${esc(v)}" ${x}></label>`;
+const f=(l,id,v='',t='text',x='')=>`<label>${l}<input id="${id}" type="${t==='number'?'text':t}" value="${esc(v)}" ${x}></label>`;
 const imageField=(label,inputId,previewId,existing,kind='product')=>`<div class="image-field"><label for="${inputId}">${label}</label><div class="image-preview ${kind==='logo'?'logo-preview':''}" id="${previewId}">${existing?`<img src="${esc(existing)}" alt="Current image">`:'<span>No image selected</span>'}</div><div class="image-actions"><button type="button" class="b g s" data-remove-image="${inputId}">Remove image</button></div><input id="${inputId}" type="file" accept="image/*"><small class="image-help">Choose a photo from your device. It will be resized to save space.</small></div>`;
 async function compressImage(file,maxSide=520){
  if(!file||!file.type||!file.type.startsWith('image/'))throw new Error('Please choose an image file.');
@@ -258,7 +258,7 @@ function sheet(t,body,ok,label='Save'){
  el.innerHTML=`<form class="sh"><h3>${t}</h3>${body}<div class="row"><button type="button" class="b g" data-c>Cancel</button><button class="b p">${label}</button></div></form>`;
  el.onclick=e=>{if(e.target===el||e.target.dataset.c!==undefined)el.remove()};
  el.firstChild.onsubmit=e=>{e.preventDefault();if(ok(id=>el.querySelector('#'+id).value.trim())!==false)el.remove()};
- document.body.appendChild(el);const i=el.querySelector('input');if(i)i.focus();return el}
+ document.body.appendChild(el);const i=el.querySelector('input:not([type="file"])');if(i){i.focus();if(i.select)i.select()}return el}
 const ask=(m,fn,l='Yes')=>sheet('Please confirm',`<p>${m}</p>`,()=>{fn()},l);
 function log(p,c,y,o){S.log.unshift({t:Date.now(),n:p.name,c,a:p.stock,y,o:o||''});S.log=S.log.slice(0,300)}
 function fits(){for(const p of S.products){const n=(cart[p.id]||0)*p.per;if(n>p.stock){toast(`Not enough ${p.name}: only ${p.stock} pcs left`);return false}}return true}
@@ -305,7 +305,7 @@ function uSheet(amt,note,fromCart){const names=[...new Set(S.utang.map(x=>x.c))]
 const act={
  menu(){toggleMobileMenu()},
  tab(id){closeMobileMenu();tab=id;render();scrollTo(0,0)},
- name(){const el=sheet('Store name & logo',f('Store name','n',S.name)+imageField('Store logo','storeLogo','storeLogoPreview',S.logo||'','logo'),v=>{
+ design(){const el=sheet('Change Store Design',f('Store name','n',S.name)+imageField('Store logo','storeLogo','storeLogoPreview',S.logo||'','logo'),v=>{
   if(logoPicker.loading){toast('Please wait for the image to finish processing.');return false}
   if(!v('n'))return false;S.name=v('n');S.logo=logoPicker.value;save();render()});
   const logoPicker=setupImagePicker(el,'storeLogo','storeLogoPreview',S.logo||'',440)},
@@ -321,6 +321,7 @@ const act={
  uadd(){uSheet()},
  pay(id){const u=S.utang.find(x=>x.id===id);sheet('Record payment',`<p>${esc(u.c)} owes ${peso(bal(u))}</p>`+f('Payment (₱)','a',bal(u).toFixed(2),'number','step="any" inputmode="decimal"'),v=>{const a=+v('a');if(!(a>0)||a>bal(u)+.001){toast('Enter an amount up to '+peso(bal(u)));return false}u.p=Math.round((u.p+a)*100)/100;save();render()},'Save payment')},
  udel(id){const u=S.utang.find(x=>x.id===id);ask(`Delete ${esc(u.c)}’s utang of ${peso(u.a)}?`,()=>{S.utang=S.utang.filter(x=>x!==u);save();render()},'Delete')}};
+document.addEventListener('focusin',e=>{const i=e.target;if(i instanceof HTMLInputElement&&!i.readOnly&&['text','search','tel','url','email'].includes(i.type))i.select()});
 document.addEventListener('click',e=>{
  const inMenu=e.target.closest('#mobileMenu,#menuToggle');
  if(!inMenu)closeMobileMenu();
