@@ -27,6 +27,8 @@ h2{margin:6px 0 12px;font-size:22px;font-weight:800}h3{margin:0 0 4px;font-size:
 .sr,input{width:100%;font:600 16px system-ui,sans-serif;padding:13px 14px;margin-top:6px;border:1.5px solid var(--ln);border-radius:12px;background:var(--card);color:var(--tx)}
 .sr{margin:0 0 14px}input:focus{outline:0;border-color:var(--navy);box-shadow:0 0 0 3px rgba(92,107,192,.3)}
 label{display:block;font-weight:700;font-size:14px;color:var(--mu);margin-top:12px}
+.input-wrap{display:block;position:relative}.input-wrap input{padding-right:48px}
+.input-clear{position:absolute;right:8px;top:calc(50% + 3px);transform:translateY(-50%);width:32px;height:32px;border:0;border-radius:50%;background:var(--ln);color:var(--mu);font:700 22px/1 system-ui;cursor:pointer;display:grid;place-items:center}
 .pc,.card{background:var(--card);border-radius:18px;padding:12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(26,35,126,.1);display:flex;align-items:center;gap:12px}
 .card{display:block}.in{flex:1;min-width:0}.in b{display:block;font-weight:800;overflow:hidden;text-overflow:ellipsis}.in small{color:var(--mu);font-weight:600}
 .av{width:48px;height:48px;border-radius:14px;background:var(--bg);color:var(--navy);display:grid;place-items:center;font-weight:800;font-size:20px;flex:none}
@@ -221,7 +223,7 @@ const st=p=>p.stock<=0?'out':p.stock<=p.min?'low':'ok';
 const low=()=>S.products.filter(p=>p.stock<=p.min).sort((a,b)=>a.stock-b.stock);
 const total=()=>S.products.reduce((t,p)=>t+(cart[p.id]||0)*p.price,0);
 const bal=u=>Math.round((u.a-u.p)*100)/100;
-const f=(l,id,v='',t='text',x='')=>`<label>${l}<input id="${id}" type="${t==='number'?'text':t}" value="${esc(v)}" ${x}></label>`;
+const f=(l,id,v='',t='text',x='')=>`<label>${l}<span class="input-wrap"><input id="${id}" type="${t==='number'?'text':t}" value="${esc(v)}" ${x}><button type="button" class="input-clear" data-clear-input="${id}" aria-label="Clear ${esc(l)}">×</button></span></label>`;
 const imageField=(label,inputId,previewId,existing,kind='product')=>`<div class="image-field"><label for="${inputId}">${label}</label><div class="image-preview ${kind==='logo'?'logo-preview':''}" id="${previewId}">${existing?`<img src="${esc(existing)}" alt="Current image">`:'<span>No image selected</span>'}</div><div class="image-actions"><button type="button" class="b g s" data-remove-image="${inputId}">Remove image</button></div><input id="${inputId}" type="file" accept="image/*"><small class="image-help">Choose a photo from your device. It will be resized to save space.</small></div>`;
 async function compressImage(file,maxSide=520){
  if(!file||!file.type||!file.type.startsWith('image/'))throw new Error('Please choose an image file.');
@@ -324,8 +326,9 @@ const act={
  uadd(){uSheet()},
  pay(id){const u=S.utang.find(x=>x.id===id);sheet('Record payment',`<p>${esc(u.c)} owes ${peso(bal(u))}</p>`+f('Payment (₱)','a',bal(u).toFixed(2),'number','step="any" inputmode="decimal"'),v=>{const a=+v('a');if(!(a>0)||a>bal(u)+.001){toast('Enter an amount up to '+peso(bal(u)));return false}u.p=Math.round((u.p+a)*100)/100;save();render()},'Save payment')},
  udel(id){const u=S.utang.find(x=>x.id===id);ask(`Delete ${esc(u.c)}’s utang of ${peso(u.a)}?`,()=>{S.utang=S.utang.filter(x=>x!==u);save();render()},'Delete')}};
-document.addEventListener('focusin',e=>{const i=e.target;if(i instanceof HTMLInputElement&&!i.readOnly&&['text','search','tel','url','email'].includes(i.type))i.select()});
 document.addEventListener('click',e=>{
+ const clear=e.target.closest('[data-clear-input]');
+ if(clear){const input=document.getElementById(clear.dataset.clearInput);if(input){input.value='';input.focus()}return}
  const inMenu=e.target.closest('#mobileMenu,#menuToggle');
  if(!inMenu)closeMobileMenu();
  const t=e.target.closest('[data-a]');if(!t)return;const id=t.dataset.id;
