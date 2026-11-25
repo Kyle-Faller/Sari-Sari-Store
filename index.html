@@ -217,7 +217,7 @@ S.utang=S.utang.filter(u=>u&&typeof u==='object').map(u=>({...u,
  c:typeof u.c==='string'?u.c:'Unknown customer',
  a:Number.isFinite(Number(u.a))?Number(u.a):0,
  p:Number.isFinite(Number(u.p))?Number(u.p):0,
- d:typeof u.d==='string'?u.d:today(),
+ d:typeof u.d==='string'?u.d:'',
  n:typeof u.n==='string'?u.n:''
 }));
 if(typeof S.name!=='string'||!S.name.trim())S.name='Sari-Sari Store';
