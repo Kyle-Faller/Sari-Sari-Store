@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sari-sari-store-v10';
+const CACHE_NAME = 'sari-sari-store-v11';
 const APP_SHELL = [
   './',
   './index.html',
