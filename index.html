@@ -200,7 +200,26 @@ const K='sari.v1';let S;try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
 S=S||{name:'Sari-Sari Store',products:[],utang:[],log:[]};
 if(typeof S.logo!=='string')S.logo='';
 if(!Array.isArray(S.products))S.products=[];
+/* Repair older or partially saved records so one damaged item cannot stop the whole app. */
+S.products=S.products.filter(p=>p&&typeof p==='object').map(p=>({
+ ...p,
+ id:typeof p.id==='string'&&p.id?p.id:Math.random().toString(36).slice(2,9),
+ name:typeof p.name==='string'&&p.name.trim()?p.name:'Unnamed product',
+ price:Number.isFinite(Number(p.price))?Number(p.price):0,
+ per:Number.isFinite(Number(p.per))&&Number(p.per)>=1?Math.floor(Number(p.per)):1,
+ stock:Number.isFinite(Number(p.stock))&&Number(p.stock)>=0?Math.floor(Number(p.stock)):0,
+ min:Number.isFinite(Number(p.min))&&Number(p.min)>=0?Math.floor(Number(p.min)):5,
+ sold:Number.isFinite(Number(p.sold))&&Number(p.sold)>=0?Math.floor(Number(p.sold)):0
+}));
 if(!Array.isArray(S.utang))S.utang=[];
+S.utang=S.utang.filter(u=>u&&typeof u==='object').map(u=>({...u,
+ id:typeof u.id==='string'&&u.id?u.id:Math.random().toString(36).slice(2,9),
+ c:typeof u.c==='string'?u.c:'Unknown customer',
+ a:Number.isFinite(Number(u.a))?Number(u.a):0,
+ p:Number.isFinite(Number(u.p))?Number(u.p):0,
+ d:typeof u.d==='string'?u.d:today(),
+ n:typeof u.n==='string'?u.n:''
+}));
 if(typeof S.name!=='string'||!S.name.trim())S.name='Sari-Sari Store';
 if(typeof S.gcashName!=='string')S.gcashName='';
 if(typeof S.gcashNumber!=='string')S.gcashNumber='';
@@ -301,12 +320,21 @@ const views={
   return`<div class="sp"><h2>Utang</h2><button class="b p s" data-a="uadd">+ Add utang</button></div><div class="card"><small>Total unpaid</small><div class="big">${peso(tot)}</div><small>${n} customer${n===1?'':'s'}</small></div>`
   +u.map(x=>`<div class="pc"><div class="in"><b>${esc(x.c)}</b><small>${x.d}${x.n?' · '+esc(x.n):''}</small><br><span class="tag ${bal(x)>0?'low':''}">${bal(x)>0?'Owes '+peso(bal(x)):'Paid'}</span></div>${bal(x)>0?`<button class="b a s" data-a="pay" data-id="${x.id}">Pay</button>`:''}<button class="b g s" data-a="udel" data-id="${x.id}">✕</button></div>`).join('')
   +(u.length?'':'<div class="em"><div><p>No utang recorded.</p></div></div>')}};
-function render(){$('#app').innerHTML=views[tab]();$('#sn').textContent=S.name;$('#lg').innerHTML=S.logo?`<img src="${esc(S.logo)}" alt="Store logo">`:esc((S.name[0]||'S').toUpperCase());
- document.querySelectorAll('nav button,.mobile-menu button').forEach(b=>b.classList.toggle('on',b.dataset.id===tab));
- const n=low().length;$('#bd').textContent=n;$('#bd').style.display=n?'':'none';
- const mb=$('#mobileBd');if(mb){mb.textContent=n;mb.hidden=!n}
- bar();
- const i=$('#q');if(i)i.oninput=()=>{q=i.value;$('#list').innerHTML=list()}}
+function render(){
+ try{
+  $('#app').innerHTML=views[tab]();
+  $('#sn').textContent=S.name;
+  $('#lg').innerHTML=S.logo?`<img src="${esc(S.logo)}" alt="Store logo">`:esc((S.name[0]||'S').toUpperCase());
+  document.querySelectorAll('nav button,.mobile-menu button').forEach(b=>b.classList.toggle('on',b.dataset.id===tab));
+  const n=low().length;$('#bd').textContent=n;$('#bd').style.display=n?'':'none';
+  const mb=$('#mobileBd');if(mb){mb.textContent=n;mb.hidden=!n}
+  bar();
+  const i=$('#q');if(i)i.oninput=()=>{q=i.value;$('#list').innerHTML=list()};
+ }catch(error){
+  console.error('Sari-Sari Store render error:',error);
+  $('#app').innerHTML='<div class="card"><h2>Something went wrong</h2><p>The app found an invalid saved record. Your saved data has been kept. Try switching tabs or reloading the app.</p><button class="b p" type="button" onclick="location.reload()">Reload app</button></div>';
+ }
+}
 function pSheet(p){const n=!p,pp=p||{};
  const el=sheet(n?'Add product':'Edit product',f('Product name','n',pp.name,'text','',!n)+imageField('Product image','productImage','productImagePreview',pp.image||'')+f('Price (₱)','pr',pp.price??'','number','step="any" inputmode="decimal"')+f('Pieces for that price (e.g. 4 for ₱5 per 4 pcs)','pe',pp.per||1,'number','inputmode="numeric"')+f('Stock on hand (pcs)','s',pp.stock??0,'number','inputmode="numeric"')+f('Alert me when stock is at or below','m',pp.min??5,'number','inputmode="numeric"')+(n?'':'<button type="button" class="b d" data-del>Delete product</button>'),v=>{
   if(imagePicker.loading){toast('Please wait for the image to finish processing.');return false}
