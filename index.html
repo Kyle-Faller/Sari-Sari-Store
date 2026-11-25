@@ -179,6 +179,19 @@ nav button{text-align:center}
 .image-help{display:block;color:var(--mu);font-size:12px;text-align:center;margin-top:7px}
 .sh button:disabled{opacity:.55;cursor:wait}
 
+
+/* Stock restock list and transaction table */
+.transaction-card{display:block;margin-top:14px;text-align:left}
+.transaction-card h3{text-align:center;margin-bottom:12px}
+.transaction-scroll{width:100%;overflow-x:auto;border:1px solid var(--ln);border-radius:12px;-webkit-overflow-scrolling:touch}
+.transaction-table{width:100%;min-width:720px;border-collapse:collapse;text-align:left;font-size:13px}
+.transaction-table th{background:var(--bg);font-weight:800;color:var(--tx);white-space:nowrap}
+.transaction-table th,.transaction-table td{padding:10px 12px;border-bottom:1px solid var(--ln);vertical-align:top}
+.transaction-table tbody tr:last-child td{border-bottom:0}
+.transaction-table td:first-child{white-space:nowrap;color:var(--mu)}
+.transaction-table td:nth-child(4),.transaction-table td:nth-child(5){white-space:nowrap;font-weight:700}
+.transaction-empty{text-align:center;color:var(--mu);padding:24px!important}
+.transaction-foot{display:block;color:var(--mu);margin-top:8px;text-align:right}
 </style></head><body>
 <header>
   <div class="lg" id="lg"></div>
@@ -276,11 +289,15 @@ function list(){const k=q.toLowerCase(),a=S.products.filter(p=>p.name.toLowerCas
 function bar(){const n=Object.values(cart).reduce((a,b)=>a+b,0);$('#cb').innerHTML=tab==='sell'&&n?`<div><span><small>${n} item${n>1?'s':''} in order</small><b>${peso(total())}</b></span><button class="b g s" data-a="clr">Clear</button><button class="b g s" data-a="ut">Utang</button><button class="b a" data-a="co">Checkout</button></div>`:''}
 const views={
  sell:()=>`<input class="sr" id="q" placeholder="Search products" value="${esc(q)}" autocomplete="off"><div id="list">${list()}</div>`,
- stock(){const l=low();return`<div class="sp"><h2>Stock</h2><button class="b p s" data-a="add">+ Add product</button></div>`
-  +(l.length?`<div class="card"><div class="sp"><h3>Shopping list</h3><button class="b a s" data-a="copy">Copy</button></div>${l.map(p=>`<div class="hl sp"><span>${esc(p.name)}</span><span class="tag ${st(p)}">${p.stock<=0?'Out of stock':p.stock+' pcs left'}</span></div>`).join('')}</div>`:'')
+ stock(){const l=low();
+  return `<div class="sp"><h2>Stock</h2><button class="b p s" data-a="add">+ Add product</button></div>`
   +S.products.map(p=>`<div class="pc">${productAvatar(p)}<div class="in"><b>${esc(p.name)}</b><small>${p.stock} pcs · alert at ${p.min} · sold ${p.sold||0}</small><br><span class="tag ${st(p)}">${{ok:'In stock',low:'Running low',out:'Out of stock'}[st(p)]}</span></div><button class="b a s" data-a="rs" data-id="${p.id}">Restock</button><button class="b g s" data-a="edit" data-id="${p.id}">Edit</button></div>`).join('')
   +(S.products.length?'':'<div class="em"><div><p>Add your first product to start tracking stock.</p></div></div>')
-  +`<details><summary>History</summary>${S.log.slice(0,60).map(h=>`<div class="hl sp"><span>${esc(h.n)}<br><small>${new Date(h.t).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})} · ${esc(h.y)}${h.o?' · '+esc(h.o):''}</small></span><b class="${h.c<0?'neg':'pos'}">${h.c>0?'+':''}${h.c}</b></div>`).join('')||'<small>Nothing yet.</small>'}</details>`},
+  +`<section class="card"><div class="sp"><h3>Items to restock</h3><button class="b a s" data-a="copy">Copy list</button></div>`
+  +(l.length?l.map(p=>`<div class="hl sp"><span>${esc(p.name)}</span><span class="tag ${st(p)}">${p.stock<=0?'Out of stock':p.stock+' pcs left'}</span></div>`).join(''):'<p class="em" style="padding:18px 0;min-height:0">Everything is stocked above its alert level.</p>')
+  +`</section><section class="card transaction-card"><h3>Transactions</h3><div class="transaction-scroll"><table class="transaction-table"><thead><tr><th>Date &amp; time</th><th>Item</th><th>Transaction</th><th>Qty change</th><th>Stock after</th><th>Note</th></tr></thead><tbody>`
+  +(S.log.length?S.log.slice(0,100).map(h=>`<tr><td>${new Date(h.t).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})}</td><td>${esc(h.n||'')}</td><td>${esc(h.y||'Transaction')}</td><td class="${h.c<0?'neg':'pos'}">${h.c>0?'+':''}${h.c} pcs</td><td>${h.a??'—'} pcs</td><td>${esc(h.o||'—')}</td></tr>`).join(''):'<tr><td colspan="6" class="transaction-empty">No transactions yet.</td></tr>')
+  +`</tbody></table></div><small class="transaction-foot">Showing the latest 100 stock transactions.</small></section>`},,
  utang(){const u=[...S.utang].sort((a,b)=>(bal(b)>0)-(bal(a)>0)||b.d.localeCompare(a.d)),tot=u.reduce((t,x)=>t+bal(x),0),n=new Set(u.filter(x=>bal(x)>0).map(x=>x.c.toLowerCase())).size;
   return`<div class="sp"><h2>Utang</h2><button class="b p s" data-a="uadd">+ Add utang</button></div><div class="card"><small>Total unpaid</small><div class="big">${peso(tot)}</div><small>${n} customer${n===1?'':'s'}</small></div>`
   +u.map(x=>`<div class="pc"><div class="in"><b>${esc(x.c)}</b><small>${x.d}${x.n?' · '+esc(x.n):''}</small><br><span class="tag ${bal(x)>0?'low':''}">${bal(x)>0?'Owes '+peso(bal(x)):'Paid'}</span></div>${bal(x)>0?`<button class="b a s" data-a="pay" data-id="${x.id}">Pay</button>`:''}<button class="b g s" data-a="udel" data-id="${x.id}">✕</button></div>`).join('')
