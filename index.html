@@ -19,12 +19,16 @@ body{margin:0 auto;max-width:640px;background:var(--bg);color:var(--tx);font:500
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--nd);z-index:10}
 header{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--nd);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px}
 .lg{width:42px;height:42px;border-radius:50%;background:var(--amb);color:var(--nd);display:grid;place-items:center;font-weight:800;font-size:20px;border:3px solid #fff}
-header button{all:unset;cursor:pointer;flex:1}header b{font-size:20px;font-weight:800;display:block}header small{color:#ffe082;font-weight:600}
+header button{all:unset;cursor:pointer;flex:1}header b{font-size:20px;font-weight:800;display:block}
+.design-button{all:unset!important;flex:none!important;width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.14)!important;color:#fff!important;display:grid!important;place-items:center;font:700 23px/1 system-ui,sans-serif!important;cursor:pointer}
+.design-button:focus-visible{outline:3px solid var(--amb);outline-offset:2px}
 main{padding:16px 16px 170px}
 h2{margin:6px 0 12px;font-size:22px;font-weight:800}h3{margin:0 0 4px;font-size:20px;font-weight:800}
 .sr,input{width:100%;font:600 16px system-ui,sans-serif;padding:13px 14px;margin-top:6px;border:1.5px solid var(--ln);border-radius:12px;background:var(--card);color:var(--tx)}
 .sr{margin:0 0 14px}input:focus{outline:0;border-color:var(--navy);box-shadow:0 0 0 3px rgba(92,107,192,.3)}
 label{display:block;font-weight:700;font-size:14px;color:var(--mu);margin-top:12px}
+.input-wrap{display:block;position:relative}.input-wrap input{padding-right:48px}
+.input-clear{position:absolute;right:8px;top:calc(50% + 3px);transform:translateY(-50%);width:32px;height:32px;border:0;border-radius:50%;background:var(--ln);color:var(--mu);font:700 22px/1 system-ui;cursor:pointer;display:grid;place-items:center}
 .pc,.card{background:var(--card);border-radius:18px;padding:12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(26,35,126,.1);display:flex;align-items:center;gap:12px}
 .card{display:block}.in{flex:1;min-width:0}.in b{display:block;font-weight:800;overflow:hidden;text-overflow:ellipsis}.in small{color:var(--mu);font-weight:600}
 .av{width:48px;height:48px;border-radius:14px;background:var(--bg);color:var(--navy);display:grid;place-items:center;font-weight:800;font-size:20px;flex:none}
@@ -135,25 +139,28 @@ nav button{text-align:center}
 .em p{margin:5px 0;text-align:center!important}
 #list>.em{grid-column:1/-1}
 
-/* Mobile hamburger menu (desktop keeps the regular bottom navigation). */
-.menu-toggle{display:none;all:unset;cursor:pointer;flex:none;width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.12);color:#fff;place-items:center;font:800 26px/1 system-ui,sans-serif;text-align:center}
+/* Mobile hamburger menu: switch to a dropdown on phones and small tablets. */
+.menu-toggle{all:unset;display:none;cursor:pointer;flex:none;width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.12);color:#fff;place-items:center;font:800 26px/1 system-ui,sans-serif;text-align:center}
 .menu-toggle:focus-visible{outline:3px solid var(--amb);outline-offset:2px}
 .mobile-menu{display:none}
-@media(max-width:699px){
+@media(max-width:767px){
   header{gap:10px}
   header button.store-title{flex:1;min-width:0}
-  .menu-toggle{display:grid}
-  nav{display:none}
+  .menu-toggle{display:grid!important}
+  nav{display:none!important}
   main{padding-bottom:105px}
   #cb{bottom:calc(10px + env(safe-area-inset-bottom,0px))}
-  .mobile-menu{position:fixed;top:calc(74px + env(safe-area-inset-top,0px));right:12px;z-index:30;width:min(270px,calc(100vw - 24px));padding:8px;background:var(--card);border:1px solid var(--ln);border-radius:18px;box-shadow:0 12px 32px rgba(0,0,0,.22);flex-direction:column;gap:4px}
-  .mobile-menu.open{display:flex}
-  .mobile-menu button{width:100%;border:0;border-radius:12px;background:transparent;color:var(--tx);padding:13px 14px;text-align:left;font:800 16px system-ui,sans-serif;display:flex;align-items:center;gap:12px}
+  .mobile-menu{position:fixed;top:calc(76px + env(safe-area-inset-top,0px));right:12px;z-index:30;width:min(280px,calc(100vw - 24px));padding:8px;background:var(--card);border:1px solid var(--ln);border-radius:18px;box-shadow:0 12px 32px rgba(0,0,0,.22);flex-direction:column;gap:4px}
+  .mobile-menu.open{display:flex!important}
+  .mobile-menu button{width:100%;min-height:48px;border:0;border-radius:12px;background:transparent;color:var(--tx);padding:13px 14px;text-align:left;font:800 16px system-ui,sans-serif;display:flex;align-items:center;gap:12px}
   .mobile-menu button span{font-size:21px;width:28px;text-align:center}
   .mobile-menu button.on{background:var(--bg);color:var(--navy)}
   .mobile-menu button .menu-count{margin-left:auto;background:var(--dg);color:#fff;border-radius:99px;padding:1px 7px;font:800 11px system-ui,sans-serif}
 }
-@media(min-width:700px){.menu-toggle,.mobile-menu{display:none!important}}
+@media(min-width:768px){
+  .menu-toggle,.mobile-menu{display:none!important}
+  nav{display:flex!important}
+}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
 
@@ -175,7 +182,8 @@ nav button{text-align:center}
 </style></head><body>
 <header>
   <div class="lg" id="lg"></div>
-  <button class="store-title" data-a="name"><b id="sn"></b><small>Tap to edit store name &amp; logo</small></button>
+  <button class="store-title" data-a="design" aria-label="Edit store name and logo"><b id="sn"></b></button>
+  <button class="design-button" type="button" data-a="design" aria-label="Change store design" title="Change store design">✎</button>
   <button class="menu-toggle" id="menuToggle" type="button" data-a="menu" aria-label="Open navigation menu" aria-expanded="false">☰</button>
 </header>
 <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
@@ -215,7 +223,7 @@ const st=p=>p.stock<=0?'out':p.stock<=p.min?'low':'ok';
 const low=()=>S.products.filter(p=>p.stock<=p.min).sort((a,b)=>a.stock-b.stock);
 const total=()=>S.products.reduce((t,p)=>t+(cart[p.id]||0)*p.price,0);
 const bal=u=>Math.round((u.a-u.p)*100)/100;
-const f=(l,id,v='',t='text',x='')=>`<label>${l}<input id="${id}" type="${t}" value="${esc(v)}" ${x}></label>`;
+const f=(l,id,v='',t='text',x='',usePlaceholder=false)=>`<label>${l}<span class="input-wrap"><input id="${id}" type="${t==='number'?'text':t}" ${usePlaceholder?`placeholder="${esc(v)}"`:`value="${esc(v)}"`} ${x}></span></label>`;
 const imageField=(label,inputId,previewId,existing,kind='product')=>`<div class="image-field"><label for="${inputId}">${label}</label><div class="image-preview ${kind==='logo'?'logo-preview':''}" id="${previewId}">${existing?`<img src="${esc(existing)}" alt="Current image">`:'<span>No image selected</span>'}</div><div class="image-actions"><button type="button" class="b g s" data-remove-image="${inputId}">Remove image</button></div><input id="${inputId}" type="file" accept="image/*"><small class="image-help">Choose a photo from your device. It will be resized to save space.</small></div>`;
 async function compressImage(file,maxSide=520){
  if(!file||!file.type||!file.type.startsWith('image/'))throw new Error('Please choose an image file.');
@@ -255,7 +263,7 @@ function sheet(t,body,ok,label='Save'){
  el.innerHTML=`<form class="sh"><h3>${t}</h3>${body}<div class="row"><button type="button" class="b g" data-c>Cancel</button><button class="b p">${label}</button></div></form>`;
  el.onclick=e=>{if(e.target===el||e.target.dataset.c!==undefined)el.remove()};
  el.firstChild.onsubmit=e=>{e.preventDefault();if(ok(id=>el.querySelector('#'+id).value.trim())!==false)el.remove()};
- document.body.appendChild(el);const i=el.querySelector('input');if(i)i.focus();return el}
+ document.body.appendChild(el);return el}
 const ask=(m,fn,l='Yes')=>sheet('Please confirm',`<p>${m}</p>`,()=>{fn()},l);
 function log(p,c,y,o){S.log.unshift({t:Date.now(),n:p.name,c,a:p.stock,y,o:o||''});S.log=S.log.slice(0,300)}
 function fits(){for(const p of S.products){const n=(cart[p.id]||0)*p.per;if(n>p.stock){toast(`Not enough ${p.name}: only ${p.stock} pcs left`);return false}}return true}
@@ -284,9 +292,9 @@ function render(){$('#app').innerHTML=views[tab]();$('#sn').textContent=S.name;$
  bar();
  const i=$('#q');if(i)i.oninput=()=>{q=i.value;$('#list').innerHTML=list()}}
 function pSheet(p){const n=!p,pp=p||{};
- const el=sheet(n?'Add product':'Edit product',f('Product name','n',pp.name)+imageField('Product image','productImage','productImagePreview',pp.image||'')+f('Price (₱)','pr',pp.price??'','number','step="any" inputmode="decimal"')+f('Pieces for that price (e.g. 4 for ₱5 per 4 pcs)','pe',pp.per||1,'number','inputmode="numeric"')+f('Stock on hand (pcs)','s',pp.stock??0,'number','inputmode="numeric"')+f('Alert me when stock is at or below','m',pp.min??5,'number','inputmode="numeric"')+(n?'':'<button type="button" class="b d" data-del>Delete product</button>'),v=>{
+ const el=sheet(n?'Add product':'Edit product',f('Product name','n',pp.name,'text','',!n)+imageField('Product image','productImage','productImagePreview',pp.image||'')+f('Price (₱)','pr',pp.price??'','number','step="any" inputmode="decimal"')+f('Pieces for that price (e.g. 4 for ₱5 per 4 pcs)','pe',pp.per||1,'number','inputmode="numeric"')+f('Stock on hand (pcs)','s',pp.stock??0,'number','inputmode="numeric"')+f('Alert me when stock is at or below','m',pp.min??5,'number','inputmode="numeric"')+(n?'':'<button type="button" class="b d" data-del>Delete product</button>'),v=>{
   if(imagePicker.loading){toast('Please wait for the image to finish processing.');return false}
-  const name=v('n'),price=+v('pr'),per=Math.floor(+v('pe')),s=Math.floor(+v('s')),m=Math.floor(+v('m'));
+  const name=v('n')||(p?p.name:''),price=+v('pr'),per=Math.floor(+v('pe')),s=Math.floor(+v('s')),m=Math.floor(+v('m'));
   if(!name||!(price>0)||!(per>=1)||!(s>=0)||!(m>=0)){toast('Enter a name, a price above zero, and whole numbers');return false}
   let o=p;if(n){o={id:uid(),sold:0};S.products.push(o)}const old=o.stock;
   Object.assign(o,{name,price,per,stock:s,min:m,image:imagePicker.value});
@@ -302,9 +310,9 @@ function uSheet(amt,note,fromCart){const names=[...new Set(S.utang.map(x=>x.c))]
 const act={
  menu(){toggleMobileMenu()},
  tab(id){closeMobileMenu();tab=id;render();scrollTo(0,0)},
- name(){const el=sheet('Store name & logo',f('Store name','n',S.name)+imageField('Store logo','storeLogo','storeLogoPreview',S.logo||'','logo'),v=>{
+ design(){const el=sheet('Change Store Design',f('Store name','n',S.name,'text','',true)+imageField('Store logo','storeLogo','storeLogoPreview',S.logo||'','logo'),v=>{
   if(logoPicker.loading){toast('Please wait for the image to finish processing.');return false}
-  if(!v('n'))return false;S.name=v('n');S.logo=logoPicker.value;save();render()});
+  S.name=v('n')||S.name;S.logo=logoPicker.value;save();render()});
   const logoPicker=setupImagePicker(el,'storeLogo','storeLogoPreview',S.logo||'',440)},
  p(id,p){const c=(cart[id]||0)+1;if(c*p.per>p.stock){toast(p.stock<=0?`${p.name} is out of stock. Restock it first.`:`Only ${p.stock} pcs of ${p.name} left`);return}cart[id]=c;render()},
  m(id){if(cart[id]>0)cart[id]--;render()},
@@ -319,6 +327,8 @@ const act={
  pay(id){const u=S.utang.find(x=>x.id===id);sheet('Record payment',`<p>${esc(u.c)} owes ${peso(bal(u))}</p>`+f('Payment (₱)','a',bal(u).toFixed(2),'number','step="any" inputmode="decimal"'),v=>{const a=+v('a');if(!(a>0)||a>bal(u)+.001){toast('Enter an amount up to '+peso(bal(u)));return false}u.p=Math.round((u.p+a)*100)/100;save();render()},'Save payment')},
  udel(id){const u=S.utang.find(x=>x.id===id);ask(`Delete ${esc(u.c)}’s utang of ${peso(u.a)}?`,()=>{S.utang=S.utang.filter(x=>x!==u);save();render()},'Delete')}};
 document.addEventListener('click',e=>{
+ const clear=e.target.closest('[data-clear-input]');
+ if(clear){const input=document.getElementById(clear.dataset.clearInput);if(input){input.value='';input.focus()}return}
  const inMenu=e.target.closest('#mobileMenu,#menuToggle');
  if(!inMenu)closeMobileMenu();
  const t=e.target.closest('[data-a]');if(!t)return;const id=t.dataset.id;
