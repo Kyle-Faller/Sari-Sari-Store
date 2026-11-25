@@ -192,7 +192,23 @@ nav button{text-align:center}
 .transaction-table td:nth-child(4),.transaction-table td:nth-child(5){white-space:nowrap;font-weight:700}
 .transaction-empty{text-align:center;color:var(--mu);padding:24px!important}
 .transaction-foot{display:block;color:var(--mu);margin-top:8px;text-align:right}
-</style></head><body>
+/* Smooth app motion and button feedback */
+:root{--motion-fast:160ms;--motion-mid:240ms;--motion-ease:cubic-bezier(.2,.75,.25,1)}
+button,.b,nav button,.mobile-menu button,.pc,.card,.tag,.av,.lg,.sh input,.sh select{transition:transform var(--motion-fast) var(--motion-ease),box-shadow var(--motion-mid) var(--motion-ease),background-color var(--motion-fast) ease,color var(--motion-fast) ease,border-color var(--motion-fast) ease,opacity var(--motion-fast) ease}
+button:not(:disabled):active,.b:not(:disabled):active{transform:scale(.96)}
+button:not(:disabled):hover,.b:not(:disabled):hover{filter:brightness(1.04)}
+.pc{animation:card-in 280ms var(--motion-ease) both}#app>.card,.transaction-card{animation:soft-in 300ms var(--motion-ease) both}
+#app .pc:nth-child(2){animation-delay:25ms}#app .pc:nth-child(3){animation-delay:45ms}#app .pc:nth-child(4){animation-delay:65ms}#app .pc:nth-child(5){animation-delay:85ms}
+.ov{animation:overlay-in 180ms ease both}.sh{animation:sheet-in 260ms var(--motion-ease) both}#toast{animation:toast-in 220ms var(--motion-ease) both}
+.pc:hover{box-shadow:0 5px 16px rgba(26,35,126,.12)}.qty button:hover{box-shadow:0 3px 10px rgba(26,35,126,.18)}
+.payment-method-box{margin:14px 0;padding:15px;border:1px solid var(--ln);border-radius:18px;background:var(--bg);text-align:left}
+.payment-method-box>strong{display:block;font-size:15px;margin-bottom:5px}.payment-method-box>small{display:block;color:var(--mu);font-size:13px;margin-bottom:8px}.payment-method-box label{margin-top:8px;position:relative}
+.payment-method-box select{appearance:none;width:100%;padding:14px 42px 14px 14px;border:1.5px solid var(--ln);border-radius:13px;background:var(--card);color:var(--tx);font:700 16px system-ui,sans-serif}
+.payment-method-box label:after{content:'⌄';position:absolute;right:15px;bottom:13px;color:var(--mu);font-size:20px;pointer-events:none}.payment-method-box select:focus{outline:0;border-color:var(--navy);box-shadow:0 0 0 3px rgba(92,107,192,.18)}
+.payment-note{border-radius:12px;background:var(--bg);padding:11px 13px;color:var(--mu);font-size:13px;line-height:1.45;text-align:left;margin:10px 0}
+@keyframes card-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes soft-in{from{opacity:0}to{opacity:1}}@keyframes overlay-in{from{opacity:0}to{opacity:1}}@keyframes sheet-in{from{opacity:.75;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}@keyframes toast-in{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
+@media(max-width:480px){.payment-method-box{padding:12px}}
+@media(prefers-reduced-motion:reduce){button,.b,nav button,.mobile-menu button,.pc,.card,.tag,.av,.lg,.sh input,.sh select{transition:none!important}.pc,.card,.transaction-card,.ov,.sh,#toast{animation:none!important}}</style></head><body>
 <header>
   <div class="lg" id="lg"></div>
   <button class="store-title" data-a="design" aria-label="Edit store name and logo"><b id="sn"></b></button>
@@ -332,7 +348,7 @@ const act={
   if(logoPicker.loading){toast('Please wait for the image to finish processing.');return false}
   S.name=v('n')||S.name;S.logo=logoPicker.value;save();render()});
   const logoPicker=setupImagePicker(el,'storeLogo','storeLogoPreview',S.logo||'',440)},
- loose(id,p){sheet('Sell loose pieces',`<p>${esc(pname(p))} · ${p.stock} pcs in stock</p>`+f('Pieces sold','pcs','2','number','inputmode="numeric"')+f('Amount customer pays (₱)','amount','','number','step="any" inputmode="decimal"')+`<label>Payment method<select id="method"><option value="Cash">Cash</option><option value="E-wallet / GCash">E-wallet / GCash</option></select></label>`+f('E-wallet reference (optional)','ref','','text')+`<p style="font-size:13px;color:var(--mu)">Enter the price you choose for these loose pieces. For e-wallet, verify the payment in your wallet app first; this app does not process transfers.</p>`,v=>{const pcs=Math.floor(+v('pcs')),amount=+v('amount'),method=v('method');if(!(pcs>0)||pcs>p.stock){toast(`Enter a quantity from 1 to ${p.stock} pcs`);return false}if(!(amount>0)){toast('Enter the amount the customer pays');return false}p.stock-=pcs;p.sold=(p.sold||0)+pcs;log(p,-pcs,'Loose sale',`${pcs} pcs · ${peso(amount)} · ${method}${v('ref')?' · ref '+v('ref'):''}`);save();render();toast('Loose sale recorded')},'Record sale')},
+ loose(id,p){sheet('Sell loose pieces',`<p>${esc(pname(p))} · ${p.stock} pcs in stock</p>`+f('Pieces sold','pcs','2','number','inputmode="numeric"')+f('Amount customer pays (₱)','amount','','number','step="any" inputmode="decimal"')+`<div class="payment-method-box"><strong>How will the customer pay?</strong><small>Choose the payment method used for this sale.</small><label>Payment method<select id="method"><option value="Cash">Cash</option><option value="E-wallet / GCash">E-wallet / GCash</option></select></label></div><div class="payment-note"><b>For e-wallet payments</b><br>Confirm the payment in your GCash or wallet app before completing. This store app records the sale but does not verify transfers automatically.</div>`+f('E-wallet reference (optional)','ref','','text')+`<p style="font-size:13px;color:var(--mu)">Enter the price you choose for these loose pieces. For e-wallet, verify the payment in your wallet app first; this app does not process transfers.</p>`,v=>{const pcs=Math.floor(+v('pcs')),amount=+v('amount'),method=v('method');if(!(pcs>0)||pcs>p.stock){toast(`Enter a quantity from 1 to ${p.stock} pcs`);return false}if(!(amount>0)){toast('Enter the amount the customer pays');return false}p.stock-=pcs;p.sold=(p.sold||0)+pcs;log(p,-pcs,'Loose sale',`${pcs} pcs · ${peso(amount)} · ${method}${v('ref')?' · ref '+v('ref'):''}`);save();render();toast('Loose sale recorded')},'Record sale')},
  p(id,p){const c=(cart[id]||0)+1;if(c*p.per>p.stock){toast(p.stock<=0?`${pname(p)} is out of stock. Restock it first.`:`Only ${p.stock} pcs of ${pname(p)} left`);return}cart[id]=c;render()},
  m(id){if(cart[id]>0)cart[id]--;render()},
  clr(){cart={};render()},
