@@ -208,7 +208,24 @@ button:not(:disabled):hover,.b:not(:disabled):hover{filter:brightness(1.04)}
 .payment-note{border-radius:12px;background:var(--bg);padding:11px 13px;color:var(--mu);font-size:13px;line-height:1.45;text-align:left;margin:10px 0}
 @keyframes card-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes soft-in{from{opacity:0}to{opacity:1}}@keyframes overlay-in{from{opacity:0}to{opacity:1}}@keyframes sheet-in{from{opacity:.75;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}@keyframes toast-in{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
 @media(max-width:480px){.payment-method-box{padding:12px}}
-@media(prefers-reduced-motion:reduce){button,.b,nav button,.mobile-menu button,.pc,.card,.tag,.av,.lg,.sh input,.sh select{transition:none!important}.pc,.card,.transaction-card,.ov,.sh,#toast{animation:none!important}}</style></head><body>
+@media(prefers-reduced-motion:reduce){button,.b,nav button,.mobile-menu button,.pc,.card,.tag,.av,.lg,.sh input,.sh select{transition:none!important}.pc,.card,.transaction-card,.ov,.sh,#toast{animation:none!important}}
+/* Smooth mobile navigation open/close */
+@media(max-width:767px){
+ .mobile-menu{display:flex!important;visibility:hidden;opacity:0;transform:translateY(-10px) scale(.975);transform-origin:top right;pointer-events:none;transition:opacity 190ms ease,transform 240ms cubic-bezier(.2,.75,.25,1),visibility 0s linear 240ms}
+ .mobile-menu.open{display:flex!important;visibility:visible;opacity:1;transform:translateY(0) scale(1);pointer-events:auto;transition:opacity 190ms ease,transform 240ms cubic-bezier(.2,.75,.25,1),visibility 0s}
+ #menuToggle{transition:transform 220ms cubic-bezier(.2,.75,.25,1),background-color 160ms ease,box-shadow 160ms ease}
+ #menuToggle[aria-expanded="true"]{transform:rotate(90deg);background:rgba(255,255,255,.2)}
+ .mobile-menu button{transition:background-color 160ms ease,color 160ms ease,transform 160ms ease}
+ .mobile-menu.open button{animation:menu-item-in 220ms cubic-bezier(.2,.75,.25,1) both}
+ .mobile-menu.open button:nth-child(2){animation-delay:25ms}
+ .mobile-menu.open button:nth-child(3){animation-delay:45ms}
+ .mobile-menu.open button:nth-child(4){animation-delay:65ms}
+ .mobile-menu.open button:nth-child(5){animation-delay:85ms}
+ .mobile-menu.open button:nth-child(6){animation-delay:105ms}
+ .mobile-menu button:active{transform:scale(.985)}
+}
+@keyframes menu-item-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+</style></head><body>
 <header>
   <div class="lg" id="lg"></div>
   <button class="store-title" data-a="design" aria-label="Edit store name and logo"><b id="sn"></b></button>
