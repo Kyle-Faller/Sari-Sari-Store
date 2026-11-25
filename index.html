@@ -316,10 +316,22 @@ const views={
   +(S.products.length?'':'<div class="em"><div><p>Add your first product to start tracking stock.</p></div></div>')
 },
  load(){return`<h2>Mobile Load</h2><div class="card"><p><b>Sell prepaid load</b></p><p class="image-help">Tap below to open GCash and buy/send load. Return here afterward to record the sale. This app does not automatically send load or confirm payment.</p><button type="button" class="b a" style="width:100%;margin:8px 0 12px" data-a="opengcash">Open GCash to buy load</button>${f('Customer mobile number','loadPhone','','tel','inputmode="tel" placeholder="09XXXXXXXXX"')+`<label>Network<select id="loadNetwork"><option>Globe</option><option>TM</option><option>Smart</option><option>TNT</option><option>DITO</option><option>GOMO</option><option>Other</option></select></label>`+f('Load amount (₱)','loadAmount','20','number','min="1" step="1" inputmode="numeric" oninput="document.getElementById(\'loadCash\').value=this.value"')+`<label>Payment method<select id="loadPayment" onchange="if(this.value==='gcash')openGCash()"><option value="cash">Cash</option><option value="gcash">GCash</option></select></label>`+f('GCash reference number (if paid by GCash)','loadRef','','text','autocomplete="off"')+f('Cash received (cash payment only)','loadCash','20','number','min="0" step="any" inputmode="decimal"')+`<label><input id="loadVerified" type="checkbox" style="width:auto;margin-right:8px">I verified the GCash payment (if applicable)</label><label><input id="loadSent" type="checkbox" style="width:auto;margin-right:8px">I have successfully sent the load to the customer</label><button class="b p" style="width:100%;margin-top:18px" type="button" data-a="loadsubmit">Record load sale</button></div>`},
- utang(){const u=[...S.utang].sort((a,b)=>(bal(b)>0)-(bal(a)>0)||b.d.localeCompare(a.d)),tot=u.reduce((t,x)=>t+bal(x),0),n=new Set(u.filter(x=>bal(x)>0).map(x=>x.c.toLowerCase())).size;
-  return`<div class="sp"><h2>Utang</h2><button class="b p s" data-a="uadd">+ Add utang</button></div><div class="card"><small>Total unpaid</small><div class="big">${peso(tot)}</div><small>${n} customer${n===1?'':'s'}</small></div>`
-  +u.map(x=>`<div class="pc"><div class="in"><b>${esc(x.c)}</b><small>${x.d}${x.n?' · '+esc(x.n):''}</small><br><span class="tag ${bal(x)>0?'low':''}">${bal(x)>0?'Owes '+peso(bal(x)):'Paid'}</span></div>${bal(x)>0?`<button class="b a s" data-a="pay" data-id="${x.id}">Pay</button>`:''}<button class="b g s" data-a="udel" data-id="${x.id}">✕</button></div>`).join('')
-  +(u.length?'':'<div class="em"><div><p>No utang recorded.</p></div></div>')}};
+  utang(){
+   const u=[...S.utang].sort((a,b)=>(bal(b)>0)-(bal(a)>0)||String(b.d||'').localeCompare(String(a.d||'')));
+   const tot=u.reduce((t,x)=>t+bal(x),0);
+   const n=new Set(u.filter(x=>bal(x)>0).map(x=>String(x.c||'').toLowerCase())).size;
+   const header='<div class="sp"><h2>Utang</h2><button class="b p s" data-a="uadd">+ Add utang</button></div>';
+   const summary='<div class="card"><small>Total unpaid</small><div class="big">'+peso(tot)+'</div><small>'+n+' customer'+(n===1?'':'s')+'</small></div>';
+   const rows=u.map(x=>{
+    const amount=bal(x),name=esc(x.c||'Unknown customer'),date=esc(x.d||''),note=x.n?' · '+esc(x.n):'';
+    const status=amount>0?'Owes '+peso(amount):'Paid';
+    const pay=amount>0?'<button class="b a s" data-a="pay" data-id="'+esc(x.id)+'">Pay</button>':'';
+    return '<div class="pc"><div class="in"><b>'+name+'</b><small>'+date+note+'</small><br><span class="tag '+(amount>0?'low':'')+'">'+status+'</span></div>'+pay+'<button class="b g s" data-a="udel" data-id="'+esc(x.id)+'">✕</button></div>';
+   }).join('');
+   const empty=u.length?'':'<div class="em"><div><p>No utang recorded.</p></div></div>';
+   return header+summary+rows+empty;
+  }
+};
 function render(){
  try{
   $('#app').innerHTML=views[tab]();
