@@ -234,6 +234,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const st=p=>p.stock<=0?'out':p.stock<=p.min?'low':'ok';
 const low=()=>S.products.filter(p=>p.stock<=p.min).sort((a,b)=>a.stock-b.stock);
+const pname=p=>p.variant?`${p.name} (${p.variant})`:p.name;
 const total=()=>S.products.reduce((t,p)=>t+(cart[p.id]||0)*p.price,0);
 const bal=u=>Math.round((u.a-u.p)*100)/100;
 const f=(l,id,v='',t='text',x='',usePlaceholder=false)=>`<label>${l}<span class="input-wrap"><input id="${id}" type="${t==='number'?'text':t}" ${usePlaceholder?`placeholder="${esc(v)}"`:`value="${esc(v)}"`} ${x}></span></label>`;
@@ -278,23 +279,23 @@ function sheet(t,body,ok,label='Save'){
  el.firstChild.onsubmit=e=>{e.preventDefault();if(ok(id=>el.querySelector('#'+id).value.trim())!==false)el.remove()};
  document.body.appendChild(el);return el}
 const ask=(m,fn,l='Yes')=>sheet('Please confirm',`<p>${m}</p>`,()=>{fn()},l);
-function log(p,c,y,o){S.log.unshift({t:Date.now(),n:p.name,c,a:p.stock,y,o:o||''});S.log=S.log.slice(0,300)}
-function fits(){for(const p of S.products){const n=(cart[p.id]||0)*p.per;if(n>p.stock){toast(`Not enough ${p.name}: only ${p.stock} pcs left`);return false}}return true}
+function log(p,c,y,o){S.log.unshift({t:Date.now(),n:pname(p),c,a:p.stock,y,o:o||''});S.log=S.log.slice(0,300)}
+function fits(){for(const p of S.products){const n=(cart[p.id]||0)*p.per;if(n>p.stock){toast(`Not enough ${pname(p)}: only ${p.stock} pcs left`);return false}}return true}
 function sell(type,note){S.products.forEach(p=>{const c=cart[p.id]||0;if(!c)return;const n=Math.min(c*p.per,p.stock);p.stock-=n;p.sold=(p.sold||0)+n;log(p,-n,type,note)});cart={};save();
  const l=low();return l.length?' · Low: '+l.slice(0,3).map(p=>p.name).join(', '):''}
 function list(){const k=q.toLowerCase(),a=S.products.filter(p=>p.name.toLowerCase().includes(k));
  if(!S.products.length)return'<div class="em"><div><p>No products yet.</p><p>Open <b>Stock</b> and tap <b>Add product</b>.</p></div></div>';
  if(!a.length)return'<div class="em"><div><p>No products match your search.</p></div></div>';
- return a.map(p=>{const c=cart[p.id]||0,l=p.stock-c*p.per;return`<div class="pc">${productAvatar(p)}<div class="in"><b>${esc(p.name)}</b><small>${peso(p.price)}${p.per>1?' / '+p.per+' pcs':''}</small><br><span class="tag ${p.stock<=0?'out':l<=p.min?'low':''}">${p.stock<=0?'Out of stock':l+' pcs left'}</span></div><div class="qty"><button data-a="m" data-id="${p.id}">−</button><b>${c}</b><button data-a="p" data-id="${p.id}">+</button></div></div>`}).join('')}
+ return a.map(p=>{const c=cart[p.id]||0,l=p.stock-c*p.per;return`<div class="pc">${productAvatar(p)}<div class="in"><b>${esc(pname(p))}</b><small>${peso(p.price)}${p.per>1?' / '+p.per+' pcs':''}</small><br><span class="tag ${p.stock<=0?'out':l<=p.min?'low':''}">${p.stock<=0?'Out of stock':l+' pcs left'}</span></div><div class="qty"><button data-a="m" data-id="${p.id}">−</button><b>${c}</b><button data-a="p" data-id="${p.id}">+</button></div><button class="b g s" data-a="loose" data-id="${p.id}">Loose</button></div>`}).join('')}
 function bar(){const n=Object.values(cart).reduce((a,b)=>a+b,0);$('#cb').innerHTML=tab==='sell'&&n?`<div><span><small>${n} item${n>1?'s':''} in order</small><b>${peso(total())}</b></span><button class="b g s" data-a="clr">Clear</button><button class="b g s" data-a="ut">Utang</button><button class="b a" data-a="co">Checkout</button></div>`:''}
 const views={
  sell:()=>`<input class="sr" id="q" placeholder="Search products" value="${esc(q)}" autocomplete="off"><div id="list">${list()}</div>`,
  stock(){const l=low();
   return `<div class="sp"><h2>Stock</h2><button class="b p s" data-a="add">+ Add product</button></div>`
-  +S.products.map(p=>`<div class="pc">${productAvatar(p)}<div class="in"><b>${esc(p.name)}</b><small>${p.stock} pcs · alert at ${p.min} · sold ${p.sold||0}</small><br><span class="tag ${st(p)}">${{ok:'In stock',low:'Running low',out:'Out of stock'}[st(p)]}</span></div><button class="b a s" data-a="rs" data-id="${p.id}">Restock</button><button class="b g s" data-a="edit" data-id="${p.id}">Edit</button></div>`).join('')
+  +S.products.map(p=>`<div class="pc">${productAvatar(p)}<div class="in"><b>${esc(pname(p))}</b><small>${p.stock} pcs · alert at ${p.min} · sold ${p.sold||0}</small><br><span class="tag ${st(p)}">${{ok:'In stock',low:'Running low',out:'Out of stock'}[st(p)]}</span></div><button class="b a s" data-a="rs" data-id="${p.id}">Restock</button><button class="b g s" data-a="edit" data-id="${p.id}">Edit</button></div>`).join('')
   +(S.products.length?'':'<div class="em"><div><p>Add your first product to start tracking stock.</p></div></div>')
   +`<section class="card"><div class="sp"><h3>Items to restock</h3><button class="b a s" data-a="copy">Copy list</button></div>`
-  +(l.length?l.map(p=>`<div class="hl sp"><span>${esc(p.name)}</span><span class="tag ${st(p)}">${p.stock<=0?'Out of stock':p.stock+' pcs left'}</span></div>`).join(''):'<p class="em" style="padding:18px 0;min-height:0">Everything is stocked above its alert level.</p>')
+  +(l.length?l.map(p=>`<div class="hl sp"><span>${esc(pname(p))}</span><span class="tag ${st(p)}">${p.stock<=0?'Out of stock':p.stock+' pcs left'}</span></div>`).join(''):'<p class="em" style="padding:18px 0;min-height:0">Everything is stocked above its alert level.</p>')
   +`</section><section class="card transaction-card"><h3>Transactions</h3><div class="transaction-scroll"><table class="transaction-table"><thead><tr><th>Date &amp; time</th><th>Item</th><th>Transaction</th><th>Qty change</th><th>Stock after</th><th>Note</th></tr></thead><tbody>`
   +(S.log.length?S.log.slice(0,100).map(h=>`<tr><td>${new Date(h.t).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})}</td><td>${esc(h.n||'')}</td><td>${esc(h.y||'Transaction')}</td><td class="${h.c<0?'neg':'pos'}">${h.c>0?'+':''}${h.c} pcs</td><td>${h.a??'—'} pcs</td><td>${esc(h.o||'—')}</td></tr>`).join(''):'<tr><td colspan="6" class="transaction-empty">No transactions yet.</td></tr>')
   +`</tbody></table></div><small class="transaction-foot">Showing the latest 100 stock transactions.</small></section>`},
@@ -309,12 +310,12 @@ function render(){$('#app').innerHTML=views[tab]();$('#sn').textContent=S.name;$
  bar();
  const i=$('#q');if(i)i.oninput=()=>{q=i.value;$('#list').innerHTML=list()}}
 function pSheet(p){const n=!p,pp=p||{};
- const el=sheet(n?'Add product':'Edit product',f('Product name','n',pp.name,'text','',!n)+imageField('Product image','productImage','productImagePreview',pp.image||'')+f('Price (₱)','pr',pp.price??'','number','step="any" inputmode="decimal"')+f('Pieces for that price (e.g. 4 for ₱5 per 4 pcs)','pe',pp.per||1,'number','inputmode="numeric"')+f('Stock on hand (pcs)','s',pp.stock??0,'number','inputmode="numeric"')+f('Alert me when stock is at or below','m',pp.min??5,'number','inputmode="numeric"')+(n?'':'<button type="button" class="b d" data-del>Delete product</button>'),v=>{
+ const el=sheet(n?'Add product':'Edit product',f('Product name','n',pp.name,'text','',!n)+f('Variant / size (optional, e.g. Big or Small)','va',pp.variant||'','text','',!n)+imageField('Product image','productImage','productImagePreview',pp.image||'')+f('Price (₱)','pr',pp.price??'','number','step="any" inputmode="decimal"')+f('Pieces for that price (e.g. 4 for ₱5 per 4 pcs)','pe',pp.per||1,'number','inputmode="numeric"')+f('Stock on hand (pcs)','s',pp.stock??0,'number','inputmode="numeric"')+f('Alert me when stock is at or below','m',pp.min??5,'number','inputmode="numeric"')+(n?'':'<button type="button" class="b d" data-del>Delete product</button>'),v=>{
   if(imagePicker.loading){toast('Please wait for the image to finish processing.');return false}
-  const name=v('n')||(p?p.name:''),price=+v('pr'),per=Math.floor(+v('pe')),s=Math.floor(+v('s')),m=Math.floor(+v('m'));
+  const name=v('n')||(p?p.name:''),variant=v('va'),price=+v('pr'),per=Math.floor(+v('pe')),s=Math.floor(+v('s')),m=Math.floor(+v('m'));
   if(!name||!(price>0)||!(per>=1)||!(s>=0)||!(m>=0)){toast('Enter a name, a price above zero, and whole numbers');return false}
   let o=p;if(n){o={id:uid(),sold:0};S.products.push(o)}const old=o.stock;
-  Object.assign(o,{name,price,per,stock:s,min:m,image:imagePicker.value});
+  Object.assign(o,{name,variant,price,per,stock:s,min:m,image:imagePicker.value});
   if(n&&s>0)log(o,s,'Initial stock');else if(!n&&s!==old)log(o,s-old,'Adjustment');
   save();render()},n?'Add product':'Save changes');
  const imagePicker=setupImagePicker(el,'productImage','productImagePreview',pp.image||'',520);
@@ -331,13 +332,14 @@ const act={
   if(logoPicker.loading){toast('Please wait for the image to finish processing.');return false}
   S.name=v('n')||S.name;S.logo=logoPicker.value;save();render()});
   const logoPicker=setupImagePicker(el,'storeLogo','storeLogoPreview',S.logo||'',440)},
- p(id,p){const c=(cart[id]||0)+1;if(c*p.per>p.stock){toast(p.stock<=0?`${p.name} is out of stock. Restock it first.`:`Only ${p.stock} pcs of ${p.name} left`);return}cart[id]=c;render()},
+ loose(id,p){sheet('Sell loose pieces',`<p>${esc(pname(p))} · ${p.stock} pcs in stock</p>`+f('Pieces sold','pcs','2','number','inputmode="numeric"')+f('Amount customer pays (₱)','amount','','number','step="any" inputmode="decimal"')+`<label>Payment method<select id="method"><option value="Cash">Cash</option><option value="E-wallet / GCash">E-wallet / GCash</option></select></label>`+f('E-wallet reference (optional)','ref','','text')+`<p style="font-size:13px;color:var(--mu)">Enter the price you choose for these loose pieces. For e-wallet, verify the payment in your wallet app first; this app does not process transfers.</p>`,v=>{const pcs=Math.floor(+v('pcs')),amount=+v('amount'),method=v('method');if(!(pcs>0)||pcs>p.stock){toast(`Enter a quantity from 1 to ${p.stock} pcs`);return false}if(!(amount>0)){toast('Enter the amount the customer pays');return false}p.stock-=pcs;p.sold=(p.sold||0)+pcs;log(p,-pcs,'Loose sale',`${pcs} pcs · ${peso(amount)} · ${method}${v('ref')?' · ref '+v('ref'):''}`);save();render();toast('Loose sale recorded')},'Record sale')},
+ p(id,p){const c=(cart[id]||0)+1;if(c*p.per>p.stock){toast(p.stock<=0?`${pname(p)} is out of stock. Restock it first.`:`Only ${p.stock} pcs of ${pname(p)} left`);return}cart[id]=c;render()},
  m(id){if(cart[id]>0)cart[id]--;render()},
  clr(){cart={};render()},
- co(){const t=total();if(!t||!fits())return;sheet('Checkout',`<div class="big">${peso(t)}</div>`+f('Cash received (₱)','c',t.toFixed(2),'number','step="any" inputmode="decimal"'),v=>{const c=+v('c');if(!(c>=t)){toast(`Short by ${peso(t-(c||0))}`);return false}const w=sell('Sold','Cash sale');render();toast(`Change: ${peso(c-t)}${w}`)},'Done')},
- ut(){if(total()&&fits())uSheet(total(),S.products.filter(p=>cart[p.id]).map(p=>`${p.name} x${cart[p.id]}`).join(', '),true)},
+ co(){const t=total();if(!t||!fits())return;sheet('Checkout',`<div class="big">${peso(t)}</div><p>Owner can adjust the final amount for this sale.</p><p style="font-size:13px;color:var(--mu)">For e-wallet: check the payment in your GCash or wallet app before completing. This app does not receive or verify transfers automatically.</p><label>Payment method<select id="method"><option value="Cash">Cash</option><option value="E-wallet / GCash">E-wallet / GCash</option></select></label>`+f('Final amount customer pays (₱)','charge',t.toFixed(2),'number','step="any" inputmode="decimal"')+f('Cash received (₱)','c',t.toFixed(2),'number','step="any" inputmode="decimal"')+f('E-wallet reference (optional)','ref','','text'),v=>{const charge=+v('charge'),method=v('method'),cash=+v('c');if(!(charge>0)){toast('Enter the amount charged');return false}if(method==='Cash'&&!(cash>=charge)){toast(`Short by ${peso(charge-(cash||0))}`);return false}const note=method==='Cash'?`Cash sale · charged ${peso(charge)}`:`${method} · charged ${peso(charge)} · ref ${v('ref')||'not entered'}`;const w=sell('Sold',note);render();toast(method==='Cash'?`Change: ${peso(cash-charge)}${w}`:`Sale recorded. Confirmed payment should be checked in your wallet.${w}`)},'Complete sale')},
+ ut(){if(total()&&fits())uSheet(total(),S.products.filter(p=>cart[p.id]).map(p=>`${pname(p)} x${cart[p.id]}`).join(', '),true)},
  add(){pSheet()},edit(id,p){pSheet(p)},
- rs(id,p){sheet('Restock',`<p>${esc(p.name)} · now ${p.stock} pcs</p>`+f('Pieces bought','n','','number','inputmode="numeric"')+f('Note (optional)','o'),v=>{const n=Math.floor(+v('n'));if(!(n>0)){toast('Enter how many pieces came in');return false}p.stock+=n;log(p,n,'Restock',v('o'));save();render()},'Add stock')},
+ rs(id,p){sheet('Restock',`<p>${esc(pname(p))} · now ${p.stock} pcs</p>`+f('Pieces bought','n','','number','inputmode="numeric"')+f('Note (optional)','o'),v=>{const n=Math.floor(+v('n'));if(!(n>0)){toast('Enter how many pieces came in');return false}p.stock+=n;log(p,n,'Restock',v('o'));save();render()},'Add stock')},
  copy(){const t=`${S.name.toUpperCase()} shopping list\n${today()}\n\n`+low().map((p,i)=>`${i+1}. ${p.name} (${p.stock<=0?'out of stock':p.stock+' pcs left'})`).join('\n');
   (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Shopping list copied'),()=>toast('Could not copy. Try again.'))},
  uadd(){uSheet()},
