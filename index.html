@@ -180,6 +180,7 @@ nav button{text-align:center}
 .sh button:disabled{opacity:.55;cursor:wait}
 
 
+/* Grocery intake */.grocery-intake{display:grid;gap:10px}.barcode-tools{display:flex;gap:8px;flex-wrap:wrap}
 /* Stock restock list and transaction table */
 .transaction-card{display:block;margin-top:14px;text-align:left}
 .transaction-card h3{text-align:center;margin-bottom:12px}
@@ -324,7 +325,7 @@ function bar(){const n=Object.values(cart).reduce((a,b)=>a+b,0);$('#cb').innerHT
 const views={
  sell:()=>`<input class="sr" id="q" placeholder="Search products" value="${esc(q)}" autocomplete="off"><div id="list">${list()}</div>`,
  stock(){const l=low();
-  return `<div class="sp"><h2>Stock</h2><button class="b p s" data-a="add">+ Add product</button></div>`
+  return `<div class="sp"><h2>Inventory</h2><div class="row" style="margin-top:0"><button class="b a s" data-a="grocery">🛒 Grocery</button><button class="b p s" data-a="add">+ Add product</button></div></div>`
   +S.products.map(p=>`<div class="pc">${productAvatar(p)}<div class="in"><b>${esc(pname(p))}</b><small>${p.stock} pcs · alert at ${p.min} · sold ${p.sold||0}</small><br><span class="tag ${st(p)}">${{ok:'In stock',low:'Running low',out:'Out of stock'}[st(p)]}</span></div><button class="b a s" data-a="rs" data-id="${p.id}">Restock</button><button class="b g s" data-a="edit" data-id="${p.id}">Edit</button></div>`).join('')
   +(S.products.length?'':'<div class="em"><div><p>Add your first product to start tracking stock.</p></div></div>')
   +`<section class="card"><div class="sp"><h3>Items to restock</h3><button class="b a s" data-a="copy">Copy list</button></div>`
@@ -342,13 +343,31 @@ function render(){$('#app').innerHTML=views[tab]();$('#sn').textContent=S.name;$
  const mb=$('#mobileBd');if(mb){mb.textContent=n;mb.hidden=!n}
  bar();
  const i=$('#q');if(i)i.oninput=()=>{q=i.value;$('#list').innerHTML=list()}}
+function grocerySheet(){
+ const body='<p style="color:var(--mu);font-size:13px">Scan a barcode or enter it manually. If the product is not in your inventory, it will be added automatically.</p>'+f('Barcode','gbc','','text','autocomplete="off" inputmode="numeric"')+'<div class="row"><button type="button" class="b g" data-a="glookup">Lookup barcode</button><button type="button" class="b g" data-a="gscan">📷 Scan with camera</button></div><div id="gscanbox" style="display:none;margin-top:12px"><video id="gvideo" playsinline style="width:100%;max-height:260px;background:#111;border-radius:14px"></video><button type="button" class="b g s" data-a="gstop">Stop camera</button></div>'+f('Product name','gn','','text','',true)+f('Brand (optional)','gbrand','','text','',true)+f('Variety / size (optional)','gvar','','text','',true)+f('Quantity bought (pieces)','gqty','1','number','inputmode="numeric"')+f('Selling price (₱)','gprice','','number','step="any" inputmode="decimal"')+imageField('Product image (optional)','gimage','gimagepreview','','product');
+ const el=sheet('Grocery · Add purchase',body,v=>{
+  if(picker.loading){toast('Please wait for the image to finish processing.');return false}
+  const barcode=v('gbc').trim(),name=v('gn').trim(),variant=v('gvar').trim(),qty=Math.floor(+v('gqty')),price=+v('gprice');
+  if(!name||!(qty>0)||!(price>0)){toast('Enter product name, quantity, and selling price.');return false}
+  let p=S.products.find(x=>barcode&&x.barcode===barcode&&(x.variant||'').toLowerCase()===variant.toLowerCase());
+  if(!p){p={id:uid(),name,variant,barcode,price,per:1,stock:0,min:5,sold:0,image:picker.value};S.products.push(p)}
+  else {p.name=name;p.variant=variant;p.barcode=barcode;p.price=price;if(picker.value)p.image=picker.value}
+  p.stock=(+p.stock||0)+qty;log(p,qty,'Grocery purchase',barcode?'Barcode '+barcode:'Manually entered');save();render();toast('Purchase saved · '+pname(p)+' · '+qty+' pcs');
+ },'Add to inventory');
+ const picker=setupImagePicker(el,'gimage','gimagepreview','',520);
+ const barcode=el.querySelector('#gbc'),video=el.querySelector('#gvideo'),box=el.querySelector('#gscanbox');
+ const stop=()=>{if(groceryScannerCleanup){groceryScannerCleanup();groceryScannerCleanup=null}if(box)box.style.display='none'};
+ el.querySelector('[data-c]').addEventListener('click',stop);el.addEventListener('submit',stop);el.addEventListener('click',e=>{if(e.target===el)stop()});
+ window.groceryLookup=async()=>{const code=barcode.value.trim();if(!code){toast('Scan or enter a barcode first.');return}let found=S.products.find(x=>x.barcode===code);if(found){el.querySelector('#gn').value=found.name||'';el.querySelector('#gbrand').value=found.brand||'';el.querySelector('#gvar').value=found.variant||'';el.querySelector('#gprice').value=found.price||'';toast('Found in your inventory. Enter purchase quantity.');return}try{toast('Searching product database…');const res=await fetch('https://world.openfoodfacts.org/api/v3/product/'+encodeURIComponent(code)+'?fields=product_name,brands,image_front_url');const data=await res.json();if(data.status===1&&data.product){const pr=data.product;el.querySelector('#gn').value=pr.product_name||'';el.querySelector('#gbrand').value=pr.brands||'';el.querySelector('#gvar').value=pr.quantity||'';const im=pr.image_front_url||'';if(im){picker.value=im;const preview=el.querySelector('#gimagepreview');preview.innerHTML='<img src="'+esc(im)+'" alt="Product image">'}toast(pr.product_name?'Product found. Check details and enter price.':'Product found; fill in its name.')}else toast('Not found online. Enter product details manually.')}catch(e){toast('Could not reach product database. Enter details manually.')}};
+ window.groceryScan=async()=>{if(!('BarcodeDetector' in window)){toast('Camera barcode scanning is not supported in this browser. Enter the barcode manually or use a USB scanner.');return}try{const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});video.srcObject=stream;box.style.display='block';await video.play();const detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128']});let active=true;groceryScannerCleanup=()=>{active=false;stream.getTracks().forEach(t=>t.stop());video.srcObject=null};const scan=async()=>{if(!active)return;try{const codes=await detector.detect(video);if(codes.length){barcode.value=codes[0].rawValue;stop();window.groceryLookup();return}}catch(e){}requestAnimationFrame(scan)};requestAnimationFrame(scan)}catch(e){toast('Camera permission was not granted or camera is unavailable.')}};
+}
 function pSheet(p){const n=!p,pp=p||{};
- const el=sheet(n?'Add product':'Edit product',f('Product name','n',pp.name,'text','',!n)+f('Variant / size (optional, e.g. Big or Small)','va',pp.variant||'','text','',!n)+imageField('Product image','productImage','productImagePreview',pp.image||'')+f('Price (₱)','pr',pp.price??'','number','step="any" inputmode="decimal"')+f('Pieces for that price (e.g. 4 for ₱5 per 4 pcs)','pe',pp.per||1,'number','inputmode="numeric"')+f('Stock on hand (pcs)','s',pp.stock??0,'number','inputmode="numeric"')+f('Alert me when stock is at or below','m',pp.min??5,'number','inputmode="numeric"')+(n?'':'<button type="button" class="b d" data-del>Delete product</button>'),v=>{
+ const el=sheet(n?'Add product':'Edit product',f('Product name','n',pp.name,'text','',!n)+f('Barcode (optional)','bc',pp.barcode||'','text','',!n)+f('Variant / size (optional, e.g. Big or Small)','va',pp.variant||'','text','',!n)+imageField('Product image','productImage','productImagePreview',pp.image||'')+f('Price (₱)','pr',pp.price??'','number','step="any" inputmode="decimal"')+f('Pieces for that price (e.g. 4 for ₱5 per 4 pcs)','pe',pp.per||1,'number','inputmode="numeric"')+f('Stock on hand (pcs)','s',pp.stock??0,'number','inputmode="numeric"')+f('Alert me when stock is at or below','m',pp.min??5,'number','inputmode="numeric"')+(n?'':'<button type="button" class="b d" data-del>Delete product</button>'),v=>{
   if(imagePicker.loading){toast('Please wait for the image to finish processing.');return false}
   const name=v('n')||(p?p.name:''),variant=v('va'),price=+v('pr'),per=Math.floor(+v('pe')),s=Math.floor(+v('s')),m=Math.floor(+v('m'));
   if(!name||!(price>0)||!(per>=1)||!(s>=0)||!(m>=0)){toast('Enter a name, a price above zero, and whole numbers');return false}
   let o=p;if(n){o={id:uid(),sold:0};S.products.push(o)}const old=o.stock;
-  Object.assign(o,{name,variant,price,per,stock:s,min:m,image:imagePicker.value});
+  Object.assign(o,{name,variant,barcode:v('bc'),price,per,stock:s,min:m,image:imagePicker.value});
   if(n&&s>0)log(o,s,'Initial stock');else if(!n&&s!==old)log(o,s-old,'Adjustment');
   save();render()},n?'Add product':'Save changes');
  const imagePicker=setupImagePicker(el,'productImage','productImagePreview',pp.image||'',520);
@@ -358,7 +377,7 @@ function uSheet(amt,note,fromCart){const names=[...new Set(S.utang.map(x=>x.c))]
   const c=v('c'),a=+v('a');if(!c||!(a>0)){toast('Enter the customer’s name and an amount above zero');return false}
   S.utang.push({id:uid(),c,a,p:0,d:v('d')||today(),n:v('o')});
   const w=fromCart?sell('Utang',c):'';save();render();toast(fromCart?'Saved to utang'+w:'Utang added')},'Save utang')}
-const act={
+const act={grocery(){grocerySheet()},glookup(){window.groceryLookup&&window.groceryLookup()},gscan(){window.groceryScan&&window.groceryScan()},gstop(){if(groceryScannerCleanup){groceryScannerCleanup();groceryScannerCleanup=null}const b=document.querySelector('#gscanbox');if(b)b.style.display='none'},
  menu(){toggleMobileMenu()},
  tab(id){closeMobileMenu();tab=id;render();scrollTo(0,0)},
  design(){const el=sheet('Change Store Design',f('Store name','n',S.name,'text','',true)+imageField('Store logo','storeLogo','storeLogoPreview',S.logo||'','logo'),v=>{
