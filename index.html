@@ -302,7 +302,7 @@ function setupImagePicker(el,inputId,previewId,initialValue,maxSide=520){
   finally{loading=false;if(submit)submit.disabled=false}
  });
  if(remove)remove.addEventListener('click',()=>{value='';input.value='';draw();toast('Image removed. Save to apply the change.')});
- return {get value(){return value},get loading(){return loading}};
+ return {get value(){return value},set value(next){value=next||'';draw()},get loading(){return loading}};
 }
 function productAvatar(p){return p.image?`<div class="av"><img src="${esc(p.image)}" alt="${esc(p.name)}"></div>`:`<div class="av">${esc((p.name||'?')[0]).toUpperCase()}</div>`}
 let tt;function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(tt);tt=setTimeout(()=>t.style.display='none',3200)}
